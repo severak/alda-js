@@ -1,27 +1,45 @@
 start = track+
 
-track = commands:command* next_track { return commands; }
-
-next_track = _ ";" _ { return null; }
+track = commands:command+ { return commands; }
 
 _ = [ \t\r\n]*
 
 command
-    = comment / note / tie / rest / octave / octave_up / octave_down / 
+    = comment / voice / long_call / call / chord / note / tie / rest / octave / octave_up / octave_down / bar /
     note_length / gate_time / velocity / volume / pan / expression / control_change /
     program_change / channel_aftertouch /
     tempo / start_point / key_shift / set_midi_channel
 
+bar
+  = _ "|" _  { return {command: "bar"} }
+
+chord
+	= note1:(note / rest) notes:subchord+ { notes.push(note1); return {command: "chord", notes: notes } }
+
+subchord
+   = "/" _ (octave_up / octave_down)* _ note:(note / rest) _ { return note }
+
+usable_name
+	= a:[a-zA-Z] b:[a-zA-Z] c:[a-zA-Z0-9-]* { return a+b+c.join(''); }
+
+long_call
+  = name:usable_name _ "\"" alias:usable_name "\":" _ { return {command: "call", instrument: name, alias: alias} }
+
+call
+   = name:usable_name _ ":" _ { return {command: "call", instrument: name} }
+
+voice
+  = "V" number:$([0-9]) ":" { return {command: "voice", number: +number} }
+
 comment
-    = _ "/*" $((!"*/" .)*) "*/" _ { return { command: "comment" }; }
-    / _ "//" [^\n]* _ { return { command: "comment" }; } 
+    = _ "#" [^\n]* _ { return { command: "comment" }; }
 
 note
     = _ tone:[cdefgab] _ accidentals:[-+]* _ length:$([0-9]*) _ dots:"."* _
     { return { command: "note", tone: tone, accidentals: accidentals, length: +length, dots: dots }; }
 
 tie
-    = _ "^" _ length:$([0-9]*) _ dots:"."* _
+    = _ "~" _ length:$([0-9]*) _ dots:"."* _
     { return { command: "tie", length: +length, dots: dots }; }
 
 slur
@@ -140,7 +158,7 @@ key_shift
         value = +value;
         if (value < -127 || value > 127) {
             error("key shift is out of range (-127-127)");
-        } 
+        }
         return { command: "key_shift", value: value };
     }
 
