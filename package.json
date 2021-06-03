@@ -1,0 +1,19 @@
+{
+  "name": "alda",
+  "version": "0.1.0",
+  "description": "javascript reimplementation of Alda music programming language",
+  "main": "js/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/severak/alda-js.git"
+  },
+  "author": "severak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/severak/alda-js/issues"
+  },
+  "homepage": "https://github.com/severak/alda-js#readme"
+}
