@@ -1,5 +1,6 @@
 var parseArgs = require('minimist');
 var JZZ = require('jzz');
+var alda = require('./js/index');
 
 var argv = parseArgs(process.argv.slice(2));
 

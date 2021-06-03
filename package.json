@@ -4,7 +4,8 @@
   "description": "javascript reimplementation of Alda music programming language",
   "main": "js/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "make-parser": "peggy js/alda_parser.pegjs"
   },
   "repository": {
     "type": "git",
