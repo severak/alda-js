@@ -7,10 +7,16 @@ _ = [ \t\r\n]*
 
 command
     = comment / voice / long_call / call / chord / note / tie / rest / octave / octave_up / octave_down / bar /
-    group / attribute / repeat / use_marker / place_marker /
+    variable_place / variable_use / group / attribute / repeat / use_marker / place_marker /
     note_length / gate_time / velocity / volume / pan / expression / control_change /
     program_change / channel_aftertouch /
     tempo / start_point / key_shift / set_midi_channel
+
+variable_use
+ = name:usable_name _ { return {command: "variable_use", name: name} }
+
+variable_place
+ = name:usable_name _ "=" _ { return {command: "variable_place", name: name} }
 
 use_marker
  = "%" name:usable_name _ { return {command: "use_marker", name: name} }
