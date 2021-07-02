@@ -13,6 +13,21 @@ if (argv['test-midi']) {
         .wait(500).send([0x80,60,0]).and('OK');  // note off
 }
 
+if (argv['parse-examples']) {
+    fs.readdir('examples', function (err, files) {
+        files.forEach(function (file) {
+            try {
+                var source = fs.readFileSync("examples/" + file, 'utf8');
+                var parsed = alda.parser.parse(source);
+                console.log(file + " OK");
+            } catch (error) {
+                // console.error(file + ": " + error.message);
+                // console.error(file + " FAIL")
+            }
+        });
+    })
+}
+
 if (argv['test-parser']) {
     var filename = argv['test-parser'];
     var source = fs.readFileSync(filename, 'utf8');

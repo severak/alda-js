@@ -1,14 +1,31 @@
 start = track+
 
+// TODO - podporovat jednotlivé tracky
 track = commands:command+ { return commands; }
 
 _ = [ \t\r\n]*
 
 command
     = comment / voice / long_call / call / chord / note / tie / rest / octave / octave_up / octave_down / bar /
+    group / attribute / repeat / use_marker / place_marker /
     note_length / gate_time / velocity / volume / pan / expression / control_change /
     program_change / channel_aftertouch /
     tempo / start_point / key_shift / set_midi_channel
+
+use_marker
+ = "%" name:usable_name _ { return {command: "use_marker", name: name} }
+
+place_marker
+ = "@" name:usable_name _ { return {command: "place_marker", name: name} }
+
+repeat
+ = "*" times:([0-9]+) _ { return {command: "repeat", times: times} }
+
+group
+ = "\[" _ commands:command+ _ "\]" _ { return {command: "group", commands: commands} }
+
+attribute
+ = "(" key:usable_name is_global:"!"? _ value:$([0-9]*) ")" _ { return {command: "attribute", key: key, value: value, is_global: !!is_global} }
 
 bar
   = _ "|" _  { return {command: "bar"} }

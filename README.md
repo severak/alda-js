@@ -2,6 +2,11 @@
 
 javascript reimplementation of [Alda music programming language](https://alda.io/). Work in progress.
 
+## What works
+
+- `node alda.js --test-parser examples\blade-runner.alda`
+- `node alda.js --parse-examples`
+
 ## Credits
 
 - based on original Alda language by Dave Yarwood
