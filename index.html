@@ -2,12 +2,24 @@
 <html>
 <head>
 <title>OSC player test</title>
+    <style>
+    .main {
+        max-width: 50em;
+        margin: 1em auto;
+    }
+
+    .error {
+        color: red;
+    }
+    </style>
 </head>
 <body>
 <!-- this is from https://github.com/colinbdclark/osc.js : -->
 <script src="js/osc.js"></script>
 <script src="js/JZZ.js"></script>
 <script src="js/JZZ.midi.SMF.js"></script>
+<script src="js/JZZ.synth.Tiny.js"></script>
+<script src="js/JZZ.gui.Select.js"></script>
 <script>
 // (c) Severák 2021
 // MIT licensed
@@ -127,45 +139,67 @@ AldaPlayer.downloadMIDI = function(midiFile, name) {
 
 window.AldaPlayer = AldaPlayer;
 </script>
+
+<!-- this part is WASM loader -->
+<script src="js/wasm_exec.js"></script>
 <script>
-
-
-function play(fname) {
-    fetch(fname)
-        .then(response => response.arrayBuffer())
-        .then(blob => {
-            AldaPlayer.playMIDI(AldaPlayer.osc2midi(blob));
-        })
+if (!WebAssembly.instantiateStreaming) { // polyfill
+    WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+    };
 }
 
-function stop() {
-    AldaPlayer.stop();
-}
-
-function download(fname) {
-    fetch(fname)
-        .then(response => response.arrayBuffer())
-        .then(blob => {
-            AldaPlayer.downloadMIDI(AldaPlayer.osc2midi(blob), fname);
-        })
-}
+const go = new Go();
+WebAssembly.instantiateStreaming(
+    fetch("js/alda.wasm"), go.importObject
+).then((result) => {
+    go.run(result.instance)
+    console.info(`alda.wasm ${Alda.VERSION} loaded`)
+}).catch((err) => {
+    console.error(err);
+});
 </script>
-<pre id="data"></pre>
 
+<!-- this part is UI -->
+<div class="main">
+    <h1>Alda web demo</h1>
+    <textarea placeholder="write your alda score here..." rows="10" cols="80" id="score">piano: c d e</textarea>
+    <br/>
+    <pre id="errormsg" class="error"></pre>
+    <button id="play">PLAY</button>
+    <button id="stop">STOP</button>
+    <select id="midiout"></select>
 
-<button onclick="play('bladerunner.data')">Play Blade Runner</button><br>
-<button onclick="play('gau.data')">Play Gau's Theme</button><br>
-<button onclick="play('bach.data')">Play Prelude, Cello Suite No. 1 in G Major (BMV 1007)</button><br>
-<button onclick="play('debussy.data')">Play String Quartet in G Minor, Claude Debussy</button><br>
-<button onclick="play('perc.data')">Play percussion test</button><br>
-<br>
-<button onclick="stop()">Stop!</button>
-<br>
-<br>
-<button onclick="download('bladerunner.data')">Download Blade Runner</button><br>
-<button onclick="download('gau.data')">Download Gau's Theme</button><br>
-<button onclick="download('bach.data')">Download Prelude, Cello Suite No. 1 in G Major (BMV 1007)</button><br>
-<button onclick="download('debussy.data')">Download String Quartet in G Minor, Claude Debussy</button><br>
-<button onclick="download('perc.data')">Download percussion test</button><br>
+</div>
+<script>
+navigator.requestMIDIAccess().then(function (access) {
+    console.log('povoleno midi out');
+});
+
+JZZ.synth.Tiny.register();
+JZZ.gui.SelectMidiOut({at: 'midiout'});
+
+document.getElementById('play').addEventListener('click', function (event) {
+   event.preventDefault();
+    Alda.toOSCBytes(document.getElementById('score').value).then(function (osdData) {
+        var midi = AldaPlayer.osc2midi(osdData);
+        try {
+            AldaPlayer.playMIDI(midi);
+            document.getElementById('errormsg').innerText = '';
+        } catch (e) {
+            document.getElementById('errormsg').innerText = e;
+        }
+    }, function (errorMsg) {
+        document.getElementById('errormsg').innerText = errorMsg;
+    })
+});
+
+document.getElementById('stop').addEventListener('click', function (event) {
+    event.preventDefault();
+    AldaPlayer.stop();
+});
+</script>
+
 </body>
 </html>
