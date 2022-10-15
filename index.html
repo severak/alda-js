@@ -1,11 +1,25 @@
 <!doctype html>
 <html>
 <head>
-<title>Alda web demo</title>
+<title>Alda web fronted</title>
     <style>
     .main {
         max-width: 50em;
         margin: 1em auto;
+        font-family: sans-serif;
+    }
+
+    a {
+        color: blue;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    textarea {
+        width: 100%;
     }
 
     .error {
@@ -165,8 +179,9 @@ WebAssembly.instantiateStreaming(
 
 <!-- this part is UI -->
 <div class="main">
-    <h1>Alda web demo</h1>
-    <textarea placeholder="write your alda score here..." rows="10" cols="80" id="score">
+    <h1><a href="https://alda.io/"><img src="alda-logo-horizontal.svg" alt="Alda"></a></h1>
+    <p>musical programming language javascript web frontend</p>
+    <textarea placeholder="write your alda score here..." rows="25" cols="80" id="score">
 # Stone in focus
 # (that song from video with chilling monkey)
 # by Aphex Twin
@@ -194,15 +209,26 @@ motif = [
     </textarea>
     <br/>
     <pre id="errormsg" class="error"></pre>
-    <button id="play">PLAY</button>
-    <button id="stop">STOP</button>
-    MIDI OUT: <select id="midiout"></select>
 
-    <p>You need to select MIDI OUT first.</p>
-    <p>Tested in Chrome and Firefox. In Firefox you need <a href="https://jazz-soft.net/download/">Jazz Plugin</a> installed.</p>
-    <p>Head out to <a href="https://alda.io/tutorial/">Alda tutorial</a> for score examples.</p>
+    <p>
+        MIDI OUT: <select id="midiout"></select>
+        <span id="player_buttons" style="display: none">
+            <button id="play">PLAY</button>
+            <button id="stop">STOP</button>
+        </span>
+        <span id="player_warning">
+            (You need to select MIDI OUT first to be able to play it.)
+        </span>
+    </p>
+    <p>
+        <button id="download">DOWNLOAD MIDI</button>
+    </p>
+
+    <p>Tested in recent versions of Chrome and Firefox. In Firefox you need <a href="https://jazz-soft.net/download/">Jazz Plugin</a> installed.</p>
+    <p>Head out to <a href="https://alda.io/tutorial/">Alda tutorial</a> or <a href="https://github.com/severak/sheet-music">this repo</a> for more score examples.</p>
+    <p>See <a href="https://alda.io/tutorial">tutorial</a> and <a href="https://alda.io/cheat-sheet">cheat sheet</a> for more info about Alda syntax.</p>
     <hr>
-    <p>Made by Dave Yarwood, Severák and many giants on whose shoulders we are standing.</p>
+    <p>Made by Dave Yarwood, Severák and many giants on whose shoulders we are standing. See <a href="https://github.com/severak/alda-js">source code</a>.</p>
 
 </div>
 <script>
@@ -216,8 +242,12 @@ var midiOut = JZZ.gui.SelectMidiOut({at: 'midiout'});
 midiOut.onSelect = function(name) {
     JZZ().openMidiOut(name).and(function () {
         AldaPlayer.output = this;
+        document.getElementById('player_buttons').style.display = 'inline';
+        document.getElementById('player_warning').style.display = 'none';
     }).or(function () {
         console.log('unselect MIDI OUT');
+        document.getElementById('player_buttons').style.display = 'none';
+        document.getElementById('player_warning').style.display = 'inline';
     });
 };
 
@@ -239,6 +269,21 @@ document.getElementById('play').addEventListener('click', function (event) {
 document.getElementById('stop').addEventListener('click', function (event) {
     event.preventDefault();
     AldaPlayer.stop();
+});
+
+document.getElementById('download').addEventListener('click', function (event) {
+    event.preventDefault();
+    Alda.toOSCBytes(document.getElementById('score').value).then(function (osdData) {
+        var midi = AldaPlayer.osc2midi(osdData);
+        try {
+            AldaPlayer.downloadMIDI(midi, '');
+            document.getElementById('errormsg').innerText = '';
+        } catch (e) {
+            document.getElementById('errormsg').innerText = e;
+        }
+    }, function (errorMsg) {
+        document.getElementById('errormsg').innerText = errorMsg;
+    })
 });
 </script>
 
