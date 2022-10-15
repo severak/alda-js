@@ -1,8 +1,11 @@
 # alda-js
 
-javascript reimplementation of [Alda music programming language](https://alda.io/). Work in progress.
+This repository contains two different things:
 
-## What works
+- javascript reimplementation of [Alda music programming language](https://alda.io/).
+- frontend (in `index.html` file and `js` folder) for Alda WASM port. See [here](https://severak.github.io/alda-js/).
+
+## What works in javascript reimplementation
 
 - `node alda.js --test-parser examples\blade-runner.alda`
 - `node alda.js --parse-examples`
@@ -22,4 +25,4 @@ javascript reimplementation of [Alda music programming language](https://alda.io
 - parser based on [MML parser](https://github.com/korinVR/mml2smf) by Katsuomi Kobayashi (korinVR)
 - uses [JZZ.js](https://github.com/jazz-soft/JZZ) for MIDI connectivity
 
-Made by [Severák](http://tilde.town/~severak/) in 2021.
+Made by [Severák](http://tilde.town/~severak/) in 2021 and 2022. Sponsored by my cat.
